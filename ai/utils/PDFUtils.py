@@ -31,5 +31,6 @@ class PDFUtils:
 
         output_path = Path(save_dir) / f"financial_summary.md"
         with open(output_path, 'w') as f:
-            f.write(markdown_content)
-            print(f"Financial summary saved to {output_path}")
+            for content in markdown_content:
+                f.write(content)
+        print(f"Financial summary saved to {output_path}")

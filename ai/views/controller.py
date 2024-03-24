@@ -5,26 +5,20 @@ from ..utils.PDFUtils import PDFUtils
 from ..utils.AIUtils import AIUtils
 
 
-@csrf_exempt  # This decorator is used to exempt CSRF verification for this view. Be cautious when using it.
+@csrf_exempt  # This decorator is used to exempt CSRF verification for this view.
 def extract_financial_details(request):
     if request.method == 'POST' and request.FILES.get('pdf'):
         pdf_file = request.FILES['pdf']
+        # Create an instance of the class
+        ai_util = AIUtils()
         try:
             # Convert PDF to images
             images = convert_from_bytes(pdf_file.read(), dpi=200, fmt='jpeg')
             saved_image_paths = PDFUtils.save_images(images)
-            image_urls = AIUtils.encode_images_to_base64(saved_image_paths)
-            concatenated_content = ""
-            if len(image_urls) > 10:
-                for i in range(0, len(image_urls), 10):
-                    batch_urls = image_urls[i:i+10]
-                    print(f"Performing request {i-10} to openAi")
-                    content = AIUtils.images_to_markdown_text(batch_urls)
-                    concatenated_content += content
-            else:
-                content = AIUtils.images_to_markdown_text(image_urls)
-            PDFUtils.output_to_folder(concatenated_content)  # write to file
-            content=concatenated_content
+            image_urls = ai_util.encode_images_to_base64(saved_image_paths)
+            content = ai_util.images_to_markdown_text(image_urls)
+            PDFUtils.output_to_folder(content)  # write to file
+
             return JsonResponse({'financial_summary': content})
 
         except Exception as e:
